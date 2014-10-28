@@ -28,7 +28,16 @@
 #import "RNCryptor.h"
 
 
-@interface RNDecryptor : RNCryptor
+@interface RNDecryptor : RNCryptor {
+  @private
+  NSMutableData *__inData;
+  NSData *_encryptionKey;
+  NSData *_HMACKey;
+  NSString *_password;
+  BOOL _hasV1HMAC;
+  RNCryptorSettings _settings;
+  CCHmacContext _HMACContext;
+}
 
 - (RNDecryptor *)initWithEncryptionKey:(NSData *)encryptionKey
                                HMACKey:(NSData *)HMACKey

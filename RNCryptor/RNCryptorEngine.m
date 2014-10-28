@@ -53,11 +53,11 @@
       if (error) {
         *error = [NSError errorWithDomain:kRNCryptorErrorDomain code:cryptorStatus userInfo:nil];
       }
-      self = nil;
+      [self release];
       return nil;
     }
 
-    __buffer = [NSMutableData data];
+    __buffer = [NSMutableData new];
   }
   return self;
 }
@@ -67,6 +67,10 @@
   if (__cryptor) {
     CCCryptorRelease(__cryptor);
   }
+  
+  [__buffer release];
+  
+  [super dealloc];
 }
 
 - (NSData *)addData:(NSData *)data error:(NSError **)error

@@ -30,16 +30,14 @@
 #import "RNCryptorEngine.h"
 
 @interface RNEncryptor ()
-@property (nonatomic, readwrite, strong) NSData *encryptionSalt;
-@property (nonatomic, readwrite, strong) NSData *HMACSalt;
-@property (nonatomic, readwrite, strong) NSData *IV;
+@property (nonatomic, readwrite, retain) NSData *encryptionSalt;
+@property (nonatomic, readwrite, retain) NSData *HMACSalt;
+@property (nonatomic, readwrite, retain) NSData *IV;
 @property (nonatomic, readwrite, assign) BOOL haveWrittenHeader;
 @end
 
 @implementation RNEncryptor
-{
-  CCHmacContext _HMACContext;
-}
+
 @synthesize encryptionSalt = _encryptionSalt;
 @synthesize HMACSalt = _HMACSalt;
 @synthesize IV = _IV;
@@ -48,9 +46,9 @@
 
 + (NSData *)encryptData:(NSData *)thePlaintext withSettings:(RNCryptorSettings)theSettings password:(NSString *)aPassword error:(NSError **)anError
 {
-  RNEncryptor *cryptor = [[self alloc] initWithSettings:theSettings
+  RNEncryptor *cryptor = [[[self alloc] initWithSettings:theSettings
                                                password:aPassword
-                                                handler:^(RNCryptor *c, NSData *d) {}];
+                                                handler:^(RNCryptor *c, NSData *d) {}] autorelease];
   return [self synchronousResultForCryptor:cryptor data:thePlaintext error:anError];
 }
 
@@ -62,20 +60,20 @@
                HMACSalt:(NSData *)anHMACSalt
                   error:(NSError **)anError
 {
-  RNEncryptor *cryptor = [[self alloc] initWithSettings:theSettings
+  RNEncryptor *cryptor = [[[self alloc] initWithSettings:theSettings
                                                password:aPassword
                                                      IV:anIV
                                          encryptionSalt:anEncryptionSalt
                                                HMACSalt:anHMACSalt
-                                                handler:^(RNCryptor *c, NSData *d) {}];
+                                                handler:^(RNCryptor *c, NSData *d) {}] autorelease];
   return [self synchronousResultForCryptor:cryptor data:thePlaintext error:anError];
 }
 
 + (NSData *)encryptData:(NSData *)thePlaintext withSettings:(RNCryptorSettings)theSettings encryptionKey:(NSData *)anEncryptionKey HMACKey:(NSData *)anHMACKey error:(NSError **)anError {
-  RNEncryptor *cryptor = [[self alloc] initWithSettings:theSettings
+  RNEncryptor *cryptor = [[[self alloc] initWithSettings:theSettings
                                           encryptionKey:anEncryptionKey
                                                 HMACKey:anHMACKey
-                                                handler:^(RNCryptor *c, NSData *d) {}];
+                                                handler:^(RNCryptor *c, NSData *d) {}] autorelease];
   return [self synchronousResultForCryptor:cryptor data:thePlaintext error:anError];
 }
 
@@ -87,11 +85,11 @@
                      IV:(NSData *)anIV
                   error:(NSError **)anError
 {
-  RNEncryptor *cryptor = [[self alloc] initWithSettings:theSettings
+  RNEncryptor *cryptor = [[[self alloc] initWithSettings:theSettings
                                           encryptionKey:anEncryptionKey
                                                 HMACKey:anHMACKey
                                                      IV:anIV
-                                                handler:^(RNCryptor *c, NSData *d) {}];
+                                                handler:^(RNCryptor *c, NSData *d) {}] autorelease];
   return [self synchronousResultForCryptor:cryptor data:thePlaintext error:anError];
 }
 
@@ -122,14 +120,17 @@
     }
 
     NSError *error = nil;
-    self.engine = [[RNCryptorEngine alloc] initWithOperation:kCCEncrypt
-                                                    settings:theSettings
-                                                         key:anEncryptionKey
-                                                          IV:self.IV
-                                                       error:&error];
+    RNCryptorEngine *engine = [[RNCryptorEngine alloc] initWithOperation:kCCEncrypt
+                                                                settings:theSettings
+                                                                     key:anEncryptionKey
+                                                                      IV:self.IV
+                                                                   error:&error];
+    self.engine = engine;
+    [engine release];
+    
     if (!self.engine) {
       [self cleanupAndNotifyWithError:error];
-      self = nil;
+      [self release];
       return nil;
     }
   }
@@ -239,6 +240,15 @@
     }
     [self cleanupAndNotifyWithError:error];
   });
+}
+
+- (void)dealloc
+{
+  [_encryptionSalt release];
+  [_HMACSalt release];
+  [_IV release];
+  
+  [super dealloc];
 }
 
 @end

@@ -27,7 +27,15 @@
 #import <Foundation/Foundation.h>
 #import "RNCryptor.h"
 
-@interface RNEncryptor : RNCryptor
+@interface RNEncryptor : RNCryptor {
+  @private
+  NSData *_encryptionSalt;
+  NSData *_HMACSalt;
+  NSData *_IV;
+  BOOL _haveWrittenHeader;
+  CCHmacContext _HMACContext;
+}
+
 - (RNEncryptor *)initWithSettings:(RNCryptorSettings)settings
                     encryptionKey:(NSData *)encryptionKey
                           HMACKey:(NSData *)HMACKey

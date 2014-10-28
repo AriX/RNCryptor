@@ -77,7 +77,7 @@ static const NSUInteger kPreambleSize = 2;
 
 
 @interface RNDecryptor ()
-@property (nonatomic, readonly, strong) NSMutableData *inData;
+@property (nonatomic, readonly, retain) NSMutableData *inData;
 @property (nonatomic, readwrite, copy) NSData *encryptionKey;
 @property (nonatomic, readwrite, copy) NSData *HMACKey;
 @property (nonatomic, readwrite, copy) NSString *password;
@@ -88,44 +88,43 @@ static const NSUInteger kPreambleSize = 2;
 @end
 
 @implementation RNDecryptor
-{
-  CCHmacContext _HMACContext;
-  NSMutableData *__inData;
-}
+
+@synthesize inData = __inData;
 @synthesize encryptionKey = _encryptionKey;
 @synthesize HMACKey = _HMACKey;
 @synthesize password = _password;
+@synthesize hasV1HMAC = _hasV1HMAC;
 @synthesize settings = _settings;
 
 + (NSData *)decryptData:(NSData *)theCipherText withSettings:(RNCryptorSettings)settings password:(NSString *)aPassword error:(NSError **)anError
 {
-  RNDecryptor *cryptor = [[self alloc] initWithPassword:aPassword
-                                                handler:^(RNCryptor *c, NSData *d) {}];
+  RNDecryptor *cryptor = [[[self alloc] initWithPassword:aPassword
+                                                 handler:^(RNCryptor *c, NSData *d) {}] autorelease];
   cryptor.settings = settings;
   return [self synchronousResultForCryptor:cryptor data:theCipherText error:anError];
 }
 
 + (NSData *)decryptData:(NSData *)theCipherText withSettings:(RNCryptorSettings)settings encryptionKey:(NSData *)encryptionKey HMACKey:(NSData *)HMACKey error:(NSError **)anError
 {
-  RNDecryptor *cryptor = [[self alloc] initWithEncryptionKey:encryptionKey
-                                                     HMACKey:HMACKey
-                                                     handler:^(RNCryptor *c, NSData *d) {}];
+  RNDecryptor *cryptor = [[[self alloc] initWithEncryptionKey:encryptionKey
+                                                      HMACKey:HMACKey
+                                                      handler:^(RNCryptor *c, NSData *d) {}] autorelease];
   cryptor.settings = settings;
   return [self synchronousResultForCryptor:cryptor data:theCipherText error:anError];
 }
 
 + (NSData *)decryptData:(NSData *)theCipherText withPassword:(NSString *)aPassword error:(NSError **)anError
 {
-  RNDecryptor *cryptor = [[self alloc] initWithPassword:aPassword
-                                                handler:^(RNCryptor *c, NSData *d) {}];
+  RNDecryptor *cryptor = [[[self alloc] initWithPassword:aPassword
+                                                 handler:^(RNCryptor *c, NSData *d) {}] autorelease];
   return [self synchronousResultForCryptor:cryptor data:theCipherText error:anError];
 }
 
 + (NSData *)decryptData:(NSData *)theCipherText withEncryptionKey:(NSData *)encryptionKey HMACKey:(NSData *)HMACKey error:(NSError **)anError;
 {
-  RNDecryptor *cryptor = [[self alloc] initWithEncryptionKey:encryptionKey
-                                                     HMACKey:HMACKey
-                                                     handler:^(RNCryptor *c, NSData *d) {}];
+  RNDecryptor *cryptor = [[[self alloc] initWithEncryptionKey:encryptionKey
+                                                      HMACKey:HMACKey
+                                                      handler:^(RNCryptor *c, NSData *d) {}] autorelease];
   return [self synchronousResultForCryptor:cryptor data:theCipherText error:anError];
 }
 
@@ -156,7 +155,7 @@ static const NSUInteger kPreambleSize = 2;
 - (NSMutableData *)inData
 {
   if (!__inData) {
-    __inData = [NSMutableData data];
+    __inData = [NSMutableData new];
   }
   return __inData;
 }
@@ -260,7 +259,7 @@ static const NSUInteger kPreambleSize = 2;
 
   NSData *header = [data subdataWithRange:NSMakeRange(0, headerSize)];  // We'll need this for the HMAC later
 
-  [[data _RNConsumeToIndex:kPreambleSize] mutableCopy]; // Throw away the preamble
+  [data _RNConsumeToIndex:kPreambleSize]; // Throw away the preamble
 
   NSError *error = nil;
   if (self.options & kRNCryptorOptionHasPassword) {
@@ -276,9 +275,12 @@ static const NSUInteger kPreambleSize = 2;
 
   NSData *IV = [data _RNConsumeToIndex:self.settings.IVSize];
 
-  self.engine = [[RNCryptorEngine alloc] initWithOperation:kCCDecrypt settings:self.settings key:self.encryptionKey IV:IV error:&error];
+  RNCryptorEngine *engine = [[RNCryptorEngine alloc] initWithOperation:kCCDecrypt settings:self.settings key:self.encryptionKey IV:IV error:&error];
+  self.engine = engine;
+  [engine release];
+  
   self.encryptionKey = nil; // Don't need this anymore
-  if (!self.engine) {
+  if (!engine) {
     [self cleanupAndNotifyWithError:error];
     return;
   }
@@ -325,6 +327,16 @@ static const NSUInteger kPreambleSize = 2;
 
     [self cleanupAndNotifyWithError:nil];
   });
+}
+
+- (void)dealloc
+{
+  [__inData release];
+  [_encryptionKey release];
+  [_HMACKey release];
+  [_password release];
+  
+  [super dealloc];
 }
 
 @end

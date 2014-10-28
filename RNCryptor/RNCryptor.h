@@ -91,7 +91,7 @@ enum
   kRNCryptorUnknownHeader = 2,
 };
 
-@class RNCryptor;
+@class RNCryptor, RNCryptorEngine;
 
 typedef void (^RNCryptorHandler)(RNCryptor *cryptor, NSData *data);
 
@@ -105,11 +105,24 @@ typedef void (^RNCryptorHandler)(RNCryptor *cryptor, NSData *data);
 // */
 //
 
-@interface RNCryptor : NSObject
-@property (nonatomic, readonly, strong) NSError *error;
+@interface RNCryptor : NSObject {
+  NSError *_error;
+  BOOL _finished;
+  RNCryptorHandler _handler;
+  dispatch_queue_t _responseQueue;
+  
+  @private
+  RNCryptorEngine *_engine;
+  dispatch_queue_t _queue;
+  NSMutableData *__outData;
+  NSUInteger __HMACLength;
+  RNCryptorOptions _options;
+}
+
+@property (nonatomic, readonly, retain) NSError *error;
 @property (nonatomic, readonly, getter=isFinished) BOOL finished;
 @property (nonatomic, readonly, copy) RNCryptorHandler handler;
-@property (nonatomic, readwrite) dispatch_queue_t responseQueue;
+@property (nonatomic, readwrite, assign) dispatch_queue_t responseQueue;
 
 - (void)addData:(NSData *)data;
 - (void)finish;
