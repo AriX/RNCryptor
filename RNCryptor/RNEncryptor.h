@@ -82,4 +82,8 @@
                HMACSalt:(NSData *)anHMACSalt
                   error:(NSError **)error;
 
+@property (nonatomic, readonly) NSUInteger headerLength;
+@property (nonatomic, readonly) NSUInteger footerLength;
+- (NSUInteger)totalLengthOfEncryptedDataWithLength:(NSUInteger)inputLength;
+
 @end

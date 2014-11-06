@@ -35,6 +35,7 @@
 }
 
 - (RNCryptorEngine *)initWithOperation:(CCOperation)operation settings:(RNCryptorSettings)settings key:(NSData *)key IV:(NSData *)IV error:(NSError **)error;
+- (NSInteger)lengthOfProcessedDataWithLength:(NSInteger)inputLength;
 - (NSData *)addData:(NSData *)data error:(NSError **)error;
 - (NSData *)finishWithError:(NSError **)error;
 @end

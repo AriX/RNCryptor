@@ -188,6 +188,21 @@
   return headerData;
 }
 
+- (NSUInteger)headerLength
+{
+  return [[self header] length];
+}
+
+- (NSUInteger)footerLength
+{
+  return self.HMACLength;
+}
+
+- (NSUInteger)totalLengthOfEncryptedDataWithLength:(NSUInteger)inputLength
+{
+  return (self.headerLength + [self.engine lengthOfProcessedDataWithLength:inputLength] + self.footerLength);
+}
+
 - (void)addData:(NSData *)data
 {
   if (self.isFinished) {

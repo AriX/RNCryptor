@@ -73,6 +73,11 @@
   [super dealloc];
 }
 
+- (NSInteger)lengthOfProcessedDataWithLength:(NSInteger)inputLength
+{
+  return CCCryptorGetOutputLength(self.cryptor, inputLength, true);
+}
+
 - (NSData *)addData:(NSData *)data error:(NSError **)error
 {
   NSMutableData *buffer = self.buffer;
