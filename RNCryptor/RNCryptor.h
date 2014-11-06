@@ -121,11 +121,18 @@ typedef void (^RNCryptorHandler)(RNCryptor *cryptor, NSData *data);
 
 @property (nonatomic, readonly, retain) NSError *error;
 @property (nonatomic, readonly, getter=isFinished) BOOL finished;
-@property (nonatomic, readonly, copy) RNCryptorHandler handler;
+@property (nonatomic, copy) RNCryptorHandler handler;
 @property (nonatomic, readwrite, assign) dispatch_queue_t responseQueue;
 
 - (void)addData:(NSData *)data;
 - (void)finish;
+
+- (void)setDestinationStream:(NSOutputStream *)outputStream dataRequestHandler:(void (^)(RNCryptor *cryptor))requestHandler endOfStreamHandler:(void (^)(NSError *streamError))endHandler;
+
+- (void)startProcessingStream:(NSInputStream *)inputStream intoDestinationStream:(NSOutputStream *)outputStream bufferSize:(NSUInteger)bufferSize endOfStreamHandler:(void (^)(NSError *streamError))endHandler;
+- (NSInputStream *)processedInputStreamWithStream:(NSInputStream *)inputStream bufferSize:(NSUInteger)bufferSize endOfStreamHandler:(void (^)(NSError *streamError))endHandler;
+
+- (NSOutputStream *)outputStreamWithDestinationStream:(NSOutputStream *)destinationStream bufferSize:(NSUInteger)bufferSize endOfStreamHandler:(void (^)(NSError *streamError))endHandler;
 
 /** Generate key given a password and salt using a PBKDF
 *
