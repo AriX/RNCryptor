@@ -486,7 +486,6 @@ static int RN_SecRandomCopyBytes(void *rnd, size_t count, uint8_t *bytes) {
 - (void)startProcessingStream:(NSInputStream *)inputStream intoDestinationStream:(NSOutputStream *)outputStream bufferSize:(NSUInteger)bufferSize endOfStreamHandler:(void (^)(NSError *streamError))endHandler
 {
   [inputStream open];
-  [inputStream scheduleInRunLoop:[NSRunLoop currentRunLoop] forMode:NSRunLoopCommonModes];
   void (^completionHandler)(NSError *) = ^(NSError *error) {
     [inputStream close];
     if (endHandler)
