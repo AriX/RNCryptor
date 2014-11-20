@@ -241,10 +241,12 @@ static const NSUInteger kPreambleSize = 2;
   }
 
   if (![self updateOptionsForPreamble:[data subdataWithRange:NSMakeRange(0, kPreambleSize)]]) {
-    [self cleanupAndNotifyWithError:[NSError errorWithDomain:kRNCryptorErrorDomain
-                                                        code:kRNCryptorUnknownHeader
-                                                    userInfo:[NSDictionary dictionaryWithObject:@"Unknown header" /* DNL */
+    dispatch_async(self.queue, ^{
+      [self cleanupAndNotifyWithError:[NSError errorWithDomain:kRNCryptorErrorDomain
+                                                          code:kRNCryptorUnknownHeader
+                                                      userInfo:[NSDictionary dictionaryWithObject:@"Unknown header" /* DNL */
                                                                                          forKey:NSLocalizedDescriptionKey]]];
+    });
     return;
   }
 
@@ -281,7 +283,9 @@ static const NSUInteger kPreambleSize = 2;
   
   self.encryptionKey = nil; // Don't need this anymore
   if (!engine) {
-    [self cleanupAndNotifyWithError:error];
+    dispatch_async(self.queue, ^{
+      [self cleanupAndNotifyWithError:error];
+    });
     return;
   }
 

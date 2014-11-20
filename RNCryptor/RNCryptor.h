@@ -126,6 +126,7 @@ typedef void (^RNCryptorHandler)(RNCryptor *cryptor, NSData *data);
 
 - (void)addData:(NSData *)data;
 - (void)finish;
+- (void)cancel;
 
 - (void)setDestinationStream:(NSOutputStream *)outputStream dataRequestHandler:(void (^)(RNCryptor *cryptor))requestHandler endOfStreamHandler:(void (^)(NSError *streamError))endHandler;
 

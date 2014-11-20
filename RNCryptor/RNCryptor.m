@@ -427,13 +427,19 @@ static int RN_SecRandomCopyBytes(void *rnd, size_t count, uint8_t *bytes) {
 
 }
 
+- (void)cancel
+{
+  [self cleanupAndNotifyWithError:nil];
+}
+
 - (void)cleanupAndNotifyWithError:(NSError *)error
 {
   self.error = error;
   self.finished = YES;
   if (self.handler) {
     dispatch_sync(self.responseQueue, ^{
-      self.handler(self, self.outData);
+      if (self.handler)
+        self.handler(self, self.outData);
     });
     self.handler = nil;
   }
@@ -524,6 +530,9 @@ static int RN_SecRandomCopyBytes(void *rnd, size_t count, uint8_t *bytes) {
   // but that won't work in cases where the stream's consumer is its delegate,
   // such as when the stream is being used by Cocoa's URL Loading system)
   __block dispatch_block_t waitUntilStreamIsOpen = ^{
+    if (self.finished)
+      return;
+    
     NSStreamStatus streamStatus = [stream streamStatus];
     
     switch (streamStatus) {
